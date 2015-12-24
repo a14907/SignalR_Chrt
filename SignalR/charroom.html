@@ -1,0 +1,70 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <script src="Scripts/jquery-1.6.4.min.js"></script>
+    <script src="Scripts/jquery.signalR-2.2.0.min.js"></script>
+    <script src="/signalr/hubs"></script>
+    <title></title>
+    <script>
+        $(function() {
+            var hub = $.connection.charRoom;
+            var username = prompt("输入用户名:");
+            $("#name").text(username);
+
+            hub.client.addMsg = function(name,msg) {
+                var str = "<div><span><strong>"+name+":</strong></span><span>"+msg+"</span></div>";
+                $("#msgShow").append(str);
+            };
+
+            hub.client.addUserList = function (list) {
+                setArrayStr(list);
+            }
+
+            $("#send").click(function () {
+                var uId = $("#userId").val();
+                var msg = $("#msg").val();
+                if (uId) {
+                    hub.server.send(uId, username, msg).done(function (res) {
+                        setArrayStr(res);
+                    });
+
+                } else {
+                    hub.server.sendAll(username, msg).done(function (res) {
+                        setArrayStr(res);
+                    });
+                }
+            });
+            $.connection.hub.start().done(function() {
+                hub.server.firstConnection(username);
+            });
+
+        })
+
+        function setArrayStr(arr) {
+            var json = "";
+            for (var i in arr) {
+                var item = arr[i];
+                json += "<div><span>" + item.ConnectionId + "</span>---<span>" + item.Name + "</span></div>";
+            }
+            $("#users").html(json);
+        }
+
+       
+    </script>
+</head>
+<body>
+    <div id="name"></div>
+    <div>
+        <input type="text" value="" id="userId" /><br />
+        <input type="text" value="" id="msg" /><br />
+        <input type="button" value="发送" id="send" />
+    </div>
+    <div id="users">
+
+    </div>
+    <div id="msgShow">
+
+    </div>
+</body>
+</html>
